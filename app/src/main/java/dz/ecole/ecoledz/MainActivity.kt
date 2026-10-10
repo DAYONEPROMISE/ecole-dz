@@ -3,12 +3,17 @@ package dz.ecole.ecoledz
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -19,15 +24,26 @@ import kotlinx.coroutines.launch
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
         setContent {
-            MaterialTheme {
+            EcoleDzTheme {
                 var tab by remember { mutableIntStateOf(0) }
+                val destinations = listOf(
+                    Triple("Classes", Icons.Default.Home, "Onglet classes"),
+                    Triple("Présences", Icons.Default.CheckCircle, "Onglet présences"),
+                    Triple("À propos", Icons.Default.Info, "Onglet à propos")
+                )
                 Scaffold(
                     topBar = { TopAppBar(title = { Text("EcoleDZ — Carnet de notes") }) },
                     bottomBar = {
                         NavigationBar {
-                            listOf("Classes", "Présences", "À propos").forEachIndexed { i, t ->
-                                NavigationBarItem(selected = tab == i, onClick = { tab = i }, label = { Text(t) }, icon = {})
+                            destinations.forEachIndexed { i, (t, icon, cd) ->
+                                NavigationBarItem(
+                                    selected = tab == i,
+                                    onClick = { tab = i },
+                                    label = { Text(t) },
+                                    icon = { Icon(icon, contentDescription = cd) }
+                                )
                             }
                         }
                     },
@@ -76,44 +92,92 @@ fun ClassesScreen() {
     val classes by dao.observeClasses().collectAsState(initial = emptyList())
     val scope = rememberCoroutineScope()
     var selected by remember { mutableStateOf<SchoolClass?>(null) }
-    var pupilFirst by remember { mutableStateOf("") }
-    var pupilLast by remember { mutableStateOf("") }
 
     if (selected == null) {
-        LazyColumn(Modifier.fillMaxSize().padding(16.dp)) {
-            items(classes) { c ->
-                ElevatedCard(onClick = { selected = c }, modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
-                    Row(Modifier.fillMaxWidth().padding(16.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text(c.name, style = MaterialTheme.typography.titleMedium)
-                        IconButton(onClick = { scope.launch { dao.deleteClass(c) } }) {
-                            Icon(Icons.Default.Delete, contentDescription = "Supprimer")
-                        }
+        ClassListPane(classes, onOpen = { selected = it }, onDelete = { c -> scope.launch { dao.deleteClass(c) } })
+    } else {
+        val cls = selected!!
+        BoxWithConstraints(Modifier.fillMaxSize()) {
+            val wide = maxWidth >= 840.dp
+            if (wide) {
+                Row(Modifier.fillMaxSize()) {
+                    Box(Modifier.weight(1f)) {
+                        ClassListPane(classes, onOpen = { selected = it }, onDelete = { c -> scope.launch { dao.deleteClass(c) } })
+                    }
+                    HorizontalDivider(Modifier.fillMaxHeight().width(1.dp))
+                    Box(Modifier.weight(1f)) {
+                        PupilListPane(cls, dao)
+                    }
+                }
+            } else {
+                PupilListPane(cls, dao, onBack = { selected = null })
+            }
+        }
+    }
+}
+
+@Composable
+fun EcoleDzTheme(content: @Composable () -> Unit) {
+    val dark = isSystemInDarkTheme()
+    val scheme = if (dark) dynamicDarkColorScheme(LocalContext.current) else dynamicLightColorScheme(LocalContext.current)
+    MaterialTheme(colorScheme = scheme, content = content)
+}
+
+@Composable
+fun ClassListPane(classes: List<SchoolClass>, onOpen: (SchoolClass) -> Unit, onDelete: (SchoolClass) -> Unit) {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom).asPaddingValues()
+    ) {
+        items(classes) { c ->
+            ElevatedCard(onClick = { onOpen(c) }, modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp)) {
+                Row(Modifier.fillMaxWidth().padding(16.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text(c.name, style = MaterialTheme.typography.titleMedium)
+                    IconButton(onClick = { onDelete(c) }, modifier = Modifier.sizeIn(minWidth = 48.dp, minHeight = 48.dp)) {
+                        Icon(Icons.Default.Delete, contentDescription = "Supprimer la classe ${c.name}")
                     }
                 }
             }
-            if (classes.isEmpty()) item { Text("Ajoutez votre première classe avec + . Données 100% hors-ligne, sur l'appareil.") }
         }
-    } else {
-        val cls = selected!!
-        val pupils by dao.observePupils(cls.id).collectAsState(initial = emptyList())
-        Column(Modifier.fillMaxSize().padding(16.dp)) {
-            Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                TextButton(onClick = { selected = null }) { Text("← Classes") }
-                Text(cls.name, style = MaterialTheme.typography.titleLarge)
-            }
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(value = pupilLast, onValueChange = { pupilLast = it }, label = { Text("Nom") }, modifier = Modifier.weight(1f), singleLine = true)
-                OutlinedTextField(value = pupilFirst, onValueChange = { pupilFirst = it }, label = { Text("Prénom") }, modifier = Modifier.weight(1f), singleLine = true)
-                Button(onClick = {
+        if (classes.isEmpty()) item {
+            Text(
+                "Ajoutez votre première classe avec + . Données 100% hors-ligne, sur l'appareil.",
+                modifier = Modifier.padding(16.dp)
+            )
+        }
+    }
+}
+
+@Composable
+fun PupilListPane(cls: SchoolClass, dao: EcoleDao, onBack: (() -> Unit)? = null) {
+    val scope = rememberCoroutineScope()
+    val pupils by dao.observePupils(cls.id).collectAsState(initial = emptyList())
+    var pupilFirst by remember { mutableStateOf("") }
+    var pupilLast by remember { mutableStateOf("") }
+    Column(
+        Modifier.fillMaxSize().padding(16.dp)
+            .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom))
+    ) {
+        Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+            if (onBack != null) TextButton(onClick = onBack) { Text("← Classes") }
+            else Spacer(Modifier.width(8.dp))
+            Text(cls.name, style = MaterialTheme.typography.titleLarge)
+        }
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            OutlinedTextField(value = pupilLast, onValueChange = { pupilLast = it }, label = { Text("Nom") }, modifier = Modifier.weight(1f), singleLine = true)
+            OutlinedTextField(value = pupilFirst, onValueChange = { pupilFirst = it }, label = { Text("Prénom") }, modifier = Modifier.weight(1f), singleLine = true)
+            Button(
+                onClick = {
                     if (pupilLast.isNotBlank()) scope.launch {
                         dao.insertPupil(Pupil(classId = cls.id, firstName = pupilFirst.trim(), lastName = pupilLast.trim()))
                         pupilFirst = ""; pupilLast = ""
                     }
-                }) { Text("+") }
-            }
-            Spacer(Modifier.height(8.dp))
-            LazyColumn { items(pupils) { p -> PupilRow(p, dao) } }
+                },
+                modifier = Modifier.sizeIn(minWidth = 48.dp, minHeight = 48.dp)
+            ) { Text("+") }
         }
+        Spacer(Modifier.height(8.dp))
+        LazyColumn { items(pupils) { p -> PupilRow(p, dao) } }
     }
 }
 
