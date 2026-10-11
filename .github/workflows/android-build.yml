@@ -27,32 +27,32 @@ jobs:
       - name: Run unit tests
         timeout-minutes: 25
         run: |
-          ATTEMPT=0
-          until gradle :app:testDebugUnitTest --stacktrace; do
-            ATTEMPT=$((ATTEMPT+1))
-            if [ $ATTEMPT -ge 3 ]; then exit 1; fi
-            sleep 90
-          done
+          set -o pipefail
+          gradle :app:testDebugUnitTest --stacktrace 2>&1 | tee build-test.log
+      - name: Surface test errors
+        if: failure()
+        run: |
+          grep -a -E "FAILED|error:|e: .*\.kt|What went wrong|Caused by" build-test.log | head -20 | cut -c1-500 | while IFS= read -r l; do echo "::error::$l"; done; true
       - name: Lint
         run: gradle :app:lintDebug --stacktrace || echo "lint reported issues"
       - name: Assemble debug APK
         timeout-minutes: 25
         run: |
-          ATTEMPT=0
-          until gradle :app:assembleDebug --stacktrace; do
-            ATTEMPT=$((ATTEMPT+1))
-            if [ $ATTEMPT -ge 3 ]; then exit 1; fi
-            sleep 90
-          done
+          set -o pipefail
+          gradle :app:assembleDebug --stacktrace 2>&1 | tee build-assemble.log
+      - name: Surface assemble errors
+        if: failure()
+        run: |
+          grep -a -E "FAILED|error:|e: .*\.kt|What went wrong|Caused by" build-assemble.log | head -20 | cut -c1-500 | while IFS= read -r l; do echo "::error::$l"; done; true
       - name: Assemble release APK (unsigned)
         timeout-minutes: 25
         run: |
-          ATTEMPT=0
-          until gradle :app:assembleRelease --stacktrace; do
-            ATTEMPT=$((ATTEMPT+1))
-            if [ $ATTEMPT -ge 3 ]; then exit 1; fi
-            sleep 90
-          done
+          set -o pipefail
+          gradle :app:assembleRelease --stacktrace 2>&1 | tee build-assemble-release.log
+      - name: Surface release assemble errors
+        if: failure()
+        run: |
+          grep -a -E "FAILED|error:|e: .*\.kt|What went wrong|Caused by" build-assemble-release.log | head -20 | cut -c1-500 | while IFS= read -r l; do echo "::error::$l"; done; true
       - name: Upload debug APK artifact
         uses: actions/upload-artifact@v4
         with:
