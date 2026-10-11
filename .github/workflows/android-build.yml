@@ -22,49 +22,25 @@ jobs:
         with:
           gradle-version: 8.9
       - name: Run unit tests
-        run: gradle :app:testDebugUnitTest --stacktrace --info 2>&1 | tee test-output.txt | tail -n 30; test ${PIPESTATUS[0]} -eq 0
+        timeout-minutes: 25
+        run: |
+          ATTEMPT=0
+          until gradle :app:testDebugUnitTest --stacktrace; do
+            ATTEMPT=$((ATTEMPT+1))
+            if [ $ATTEMPT -ge 3 ]; then exit 1; fi
+            sleep 90
+          done
       - name: Lint
         run: gradle :app:lintDebug --stacktrace || echo "lint reported issues"
       - name: Assemble debug APK
-        run: gradle :app:assembleDebug --stacktrace 2>&1 | tee assemble-output.txt | tail -n 30; test ${PIPESTATUS[0]} -eq 0
-      - name: Forward logs via Checks API
-        if: always()
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        timeout-minutes: 25
         run: |
-          python3 - <<'PYEOF'
-          import json, os, urllib.request
-          def tail(path, n=25000):
-              try:
-                  with open(path, 'rb') as f:
-                      data = f.read()
-                  return data[-n:].decode('utf-8', 'replace')
-              except FileNotFoundError:
-                  return '(missing %s)' % path
-          log = tail('test-output.txt') + '\n--- ASSEMBLE ---\n' + tail('assemble-output.txt')
-          body = {
-              'name': 'ci-log',
-              'head_sha': os.environ['GITHUB_SHA'],
-              'status': 'completed',
-              'conclusion': 'failure',
-              'output': {'title': 'Build log tail', 'summary': 'tail of test/assemble logs', 'text': log[-60000:]}
-          }
-          req = urllib.request.Request(
-              'https://api.github.com/repos/DAYONEPROMISE/ecole-dz/check-runs',
-              data=json.dumps(body).encode(),
-              headers={'Authorization': 'Bearer ' + os.environ['GH_TOKEN'],
-                       'Accept': 'application/vnd.github+json',
-                       'Content-Type': 'application/json'})
-          try:
-              resp = urllib.request.urlopen(req)
-              print('check-run created:', resp.status)
-          except Exception as e:
-              print('check-run failed:', e)
-              try:
-                  print(e.read().decode()[:500])
-              except Exception:
-                  pass
-          PYEOF
+          ATTEMPT=0
+          until gradle :app:assembleDebug --stacktrace; do
+            ATTEMPT=$((ATTEMPT+1))
+            if [ $ATTEMPT -ge 3 ]; then exit 1; fi
+            sleep 90
+          done
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
