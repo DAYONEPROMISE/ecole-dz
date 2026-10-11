@@ -127,7 +127,7 @@ fun EcoleDzTheme(content: @Composable () -> Unit) {
 fun ClassListPane(classes: List<SchoolClass>, onOpen: (SchoolClass) -> Unit, onDelete: (SchoolClass) -> Unit) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom).asPaddingValues()
+        contentPadding = WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal, WindowInsetsSides.Bottom).asPaddingValues()
     ) {
         items(classes) { c ->
             ElevatedCard(onClick = { onOpen(c) }, modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp)) {
