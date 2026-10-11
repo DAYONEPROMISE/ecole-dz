@@ -27,21 +27,44 @@ jobs:
         run: gradle :app:lintDebug --stacktrace || echo "lint reported issues"
       - name: Assemble debug APK
         run: gradle :app:assembleDebug --stacktrace 2>&1 | tee assemble-output.txt | tail -n 30; test ${PIPESTATUS[0]} -eq 0
-      - name: Forward logs to ci-logs branch
+      - name: Forward logs via Checks API
         if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          mkdir -p /tmp/cilog
-          cp test-output.txt /tmp/cilog/test-output.txt 2>/dev/null || echo "no test log" > /tmp/cilog/test-output.txt
-          cp assemble-output.txt /tmp/cilog/assemble-output.txt 2>/dev/null || true
-          git config user.name ci-diag
-          git config user.email ci-diag@local
-          git checkout --orphan ci-logs 2>/dev/null || git checkout ci-logs
-          git rm -rf . >/dev/null 2>&1 || true
-          cp /tmp/cilog/test-output.txt ./test-output.txt
-          if [ -f /tmp/cilog/assemble-output.txt ]; then cp /tmp/cilog/assemble-output.txt ./assemble-output.txt; fi
-          git add -A
-          git commit -m "ci log $GITHUB_SHA" --allow-empty >/dev/null
-          git push origin ci-logs --force
+          python3 - <<'PYEOF'
+          import json, os, urllib.request
+          def tail(path, n=25000):
+              try:
+                  with open(path, 'rb') as f:
+                      data = f.read()
+                  return data[-n:].decode('utf-8', 'replace')
+              except FileNotFoundError:
+                  return '(missing %s)' % path
+          log = tail('test-output.txt') + '\n--- ASSEMBLE ---\n' + tail('assemble-output.txt')
+          body = {
+              'name': 'ci-log',
+              'head_sha': os.environ['GITHUB_SHA'],
+              'status': 'completed',
+              'conclusion': 'failure',
+              'output': {'title': 'Build log tail', 'summary': 'tail of test/assemble logs', 'text': log[-60000:]}
+          }
+          req = urllib.request.Request(
+              'https://api.github.com/repos/DAYONEPROMISE/ecole-dz/check-runs',
+              data=json.dumps(body).encode(),
+              headers={'Authorization': 'Bearer ' + os.environ['GH_TOKEN'],
+                       'Accept': 'application/vnd.github+json',
+                       'Content-Type': 'application/json'})
+          try:
+              resp = urllib.request.urlopen(req)
+              print('check-run created:', resp.status)
+          except Exception as e:
+              print('check-run failed:', e)
+              try:
+                  print(e.read().decode()[:500])
+              except Exception:
+                  pass
+          PYEOF
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
