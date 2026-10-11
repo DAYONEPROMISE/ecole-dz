@@ -41,7 +41,22 @@ jobs:
       - name: Lint
         run: gradle :app:lintDebug --stacktrace || echo "lint reported issues"
       - name: Assemble debug APK
-        run: gradle :app:assembleDebug --stacktrace
+        id: assemble
+        continue-on-error: true
+        run: gradle :app:assembleDebug --stacktrace --info > assemble-output.txt 2>&1; echo "code=$?" >> "$GITHUB_OUTPUT"; tail -n 40 assemble-output.txt
+      - name: Publish diagnostics on assemble failure
+        if: steps.assemble.outputs.code != '0'
+        run: |
+          cp assemble-output.txt /tmp/assemble-output.txt
+          git config user.name ci-diag
+          git config user.email ci-diag@local
+          git checkout --orphan ci-logs 2>/dev/null || git checkout ci-logs
+          git rm -rf . > /dev/null 2>&1 || true
+          cp /tmp/assemble-output.txt ./assemble-output.txt
+          git add assemble-output.txt
+          git commit -m "ci diagnostics" --allow-empty
+          git push origin ci-logs --force
+          exit 1
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
