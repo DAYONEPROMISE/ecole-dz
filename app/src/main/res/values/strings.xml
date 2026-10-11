@@ -1,3 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">EcoleDZ</string>
+    <string name="tab_classes">Classes</string>
+    <string name="tab_attendance">Présences</string>
+    <string name="tab_about">À propos</string>
+    <string name="cd_classes">Onglet classes</string>
+    <string name="cd_attendance">Onglet présences</string>
+    <string name="cd_about">Onglet à propos</string>
+    <string name="app_title">EcoleDZ — Carnet de notes</string>
+    <string name="add">Ajouter</string>
+    <string name="new_class">Nouvelle classe</string>
+    <string name="name_ex">Nom (ex: 5AP-A)</string>
+    <string name="cancel">Annuler</string>
+    <string name="empty_classes">Ajoutez votre première classe avec + . Données 100% hors-ligne, sur l\u2019appareil.</string>
+    <string name="delete_class">Supprimer la classe %1$s</string>
+    <string name="back_classes">← Classes</string>
+    <string name="last_name">Nom</string>
+    <string name="first_name">Prénom</string>
+    <string name="close">Fermer</string>
+    <string name="add_grade">+ Note</string>
+    <string name="delete">Supprimer</string>
+    <string name="avg_none">Moyenne: — /20</string>
+    <string name="avg_fmt">Moyenne: %1$s /20 — %2$s</string>
+    <string name="subject">Matière</string>
+    <string name="attendance">Présences — %1$s</string>
+    <string name="choose_class">Choisissez une classe.</string>
+    <string name="st_present">Présent</string>
+    <string name="st_absent">Absent</string>
+    <string name="st_late">Retard</string>
+    <string name="st_excused">Excusé</string>
+    <string name="about_1">Carnet de notes et présences hors-ligne pour enseignants en Algérie.</string>
+    <string name="about_2">• Échelle 0–20, moyenne et mentions (10 = Passable).</string>
+    <string name="about_3">• Primaire: moyenne simple; Moyen/Lycée: coefficients.</string>
+    <string name="about_4">• Français / العربية (RTL). Aucun compte, aucune connexion.</string>
+    <string name="about_5">• Données élèves conservées uniquement sur l\u2019appareil.</string>
 </resources>

@@ -1,3 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">مدرستي DZ</string>
+    <string name="tab_classes">الأقسام</string>
+    <string name="tab_attendance">الحضور</string>
+    <string name="tab_about">حول</string>
+    <string name="cd_classes">تبويب الأقسام</string>
+    <string name="cd_attendance">تبويب الحضور</string>
+    <string name="cd_about">تبويب حول</string>
+    <string name="app_title">مدرستي DZ — دفتر النقاط</string>
+    <string name="add">إضافة</string>
+    <string name="new_class">قسم جديد</string>
+    <string name="name_ex">الاسم (مثال: 5AP-A)</string>
+    <string name="cancel">إلغاء</string>
+    <string name="empty_classes">أضف قسمك الأول بـ + . البيانات دون إنترنت، على الجهاز.</string>
+    <string name="delete_class">حذف القسم %1$s</string>
+    <string name="back_classes">الأقسام</string>
+    <string name="last_name">اللقب</string>
+    <string name="first_name">الاسم</string>
+    <string name="close">إغلاق</string>
+    <string name="add_grade">+ نقطة</string>
+    <string name="delete">حذف</string>
+    <string name="avg_none">المعدل: — /20</string>
+    <string name="avg_fmt">المعدل: %1$s /20 — %2$s</string>
+    <string name="subject">المادة</string>
+    <string name="attendance">الحضور — %1$s</string>
+    <string name="choose_class">اختر قسمًا.</string>
+    <string name="st_present">حاضر</string>
+    <string name="st_absent">غائب</string>
+    <string name="st_late">متأخر</string>
+    <string name="st_excused">معذور</string>
+    <string name="about_1">دفتر النقاط والحضور دون إنترنت للأساتذة في الجزائر.</string>
+    <string name="about_2">• سلم 0–20، المعدل والتقديرات (10 = مقبول).</string>
+    <string name="about_3">• ابتدائي: معدل بسيط؛ متوسط/ثانوي: معاملات.</string>
+    <string name="about_4">• فرنسي / عربية. بدون حساب، بدون اتصال.</string>
+    <string name="about_5">• بيانات التلاميذ محفوظة على الجهاز فقط.</string>
 </resources>

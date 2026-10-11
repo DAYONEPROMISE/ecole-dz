@@ -18,6 +18,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 
@@ -29,12 +30,12 @@ class MainActivity : ComponentActivity() {
             EcoleDzTheme {
                 var tab by remember { mutableIntStateOf(0) }
                 val destinations = listOf(
-                    Triple("Classes", Icons.Default.Home, "Onglet classes"),
-                    Triple("Présences", Icons.Default.CheckCircle, "Onglet présences"),
-                    Triple("À propos", Icons.Default.Info, "Onglet à propos")
+                    Triple(stringResource(R.string.tab_classes), Icons.Default.Home, stringResource(R.string.cd_classes)),
+                    Triple(stringResource(R.string.tab_attendance), Icons.Default.CheckCircle, stringResource(R.string.cd_attendance)),
+                    Triple(stringResource(R.string.tab_about), Icons.Default.Info, stringResource(R.string.cd_about))
                 )
                 Scaffold(
-                    topBar = { TopAppBar(title = { Text("EcoleDZ — Carnet de notes") }) },
+                    topBar = { TopAppBar(title = { Text(stringResource(R.string.app_title)) }) },
                     bottomBar = {
                         NavigationBar {
                             destinations.forEachIndexed { i, (t, icon, cd) ->
@@ -71,17 +72,17 @@ fun AddClassFab() {
     val scope = rememberCoroutineScope()
     var open by remember { mutableStateOf(false) }
     var name by remember { mutableStateOf("") }
-    FloatingActionButton(onClick = { open = true }) { Icon(Icons.Default.Add, contentDescription = "Ajouter") }
+    FloatingActionButton(onClick = { open = true }) { Icon(Icons.Default.Add, contentDescription = stringResource(R.string.add)) }
     if (open) AlertDialog(
         onDismissRequest = { open = false },
-        title = { Text("Nouvelle classe") },
-        text = { OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Nom (ex: 5AP-A)") }, singleLine = true) },
+        title = { Text(stringResource(R.string.new_class)) },
+        text = { OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text(stringResource(R.string.name_ex)) }, singleLine = true) },
         confirmButton = {
             TextButton(onClick = {
                 if (name.isNotBlank()) scope.launch { dao.insertClass(SchoolClass(name = name.trim())); name = ""; open = false }
-            }) { Text("Ajouter") }
+            }) { Text(stringResource(R.string.add)) }
         },
-        dismissButton = { TextButton(onClick = { open = false }) { Text("Annuler") } }
+        dismissButton = { TextButton(onClick = { open = false }) { Text(stringResource(R.string.cancel)) } }
     )
 }
 
@@ -134,14 +135,14 @@ fun ClassListPane(classes: List<SchoolClass>, onOpen: (SchoolClass) -> Unit, onD
                 Row(Modifier.fillMaxWidth().padding(16.dp), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text(c.name, style = MaterialTheme.typography.titleMedium)
                     IconButton(onClick = { onDelete(c) }, modifier = Modifier.sizeIn(minWidth = 48.dp, minHeight = 48.dp)) {
-                        Icon(Icons.Default.Delete, contentDescription = "Supprimer la classe ${c.name}")
+                        Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.delete_class, c.name))
                     }
                 }
             }
         }
         if (classes.isEmpty()) item {
             Text(
-                "Ajoutez votre première classe avec + . Données 100% hors-ligne, sur l'appareil.",
+                stringResource(R.string.empty_classes),
                 modifier = Modifier.padding(16.dp)
             )
         }
@@ -159,13 +160,13 @@ fun PupilListPane(cls: SchoolClass, dao: EcoleDao, onBack: (() -> Unit)? = null)
             .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom))
     ) {
         Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-            if (onBack != null) TextButton(onClick = onBack) { Text("← Classes") }
+            if (onBack != null) TextButton(onClick = onBack) { Text(stringResource(R.string.back_classes)) }
             else Spacer(Modifier.width(8.dp))
             Text(cls.name, style = MaterialTheme.typography.titleLarge)
         }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedTextField(value = pupilLast, onValueChange = { pupilLast = it }, label = { Text("Nom") }, modifier = Modifier.weight(1f), singleLine = true)
-            OutlinedTextField(value = pupilFirst, onValueChange = { pupilFirst = it }, label = { Text("Prénom") }, modifier = Modifier.weight(1f), singleLine = true)
+            OutlinedTextField(value = pupilLast, onValueChange = { pupilLast = it }, label = { Text(stringResource(R.string.last_name)) }, modifier = Modifier.weight(1f), singleLine = true)
+            OutlinedTextField(value = pupilFirst, onValueChange = { pupilFirst = it }, label = { Text(stringResource(R.string.first_name)) }, modifier = Modifier.weight(1f), singleLine = true)
             Button(
                 onClick = {
                     if (pupilLast.isNotBlank()) scope.launch {
@@ -197,13 +198,13 @@ fun PupilRow(p: Pupil, dao: EcoleDao) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text("${p.lastName} ${p.firstName}", style = MaterialTheme.typography.titleSmall)
                 Row {
-                    TextButton(onClick = { showAdd = !showAdd }) { Text(if (showAdd) "Fermer" else "+ Note") }
-                    IconButton(onClick = { scope.launch { dao.deletePupil(p) } }) { Icon(Icons.Default.Delete, contentDescription = "Supprimer") }
+                    TextButton(onClick = { showAdd = !showAdd }) { Text(if (showAdd) stringResource(R.string.close) else stringResource(R.string.add_grade)) }
+                    IconButton(onClick = { scope.launch { dao.deletePupil(p) } }) { Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.delete)) }
                 }
             }
             Text(
-                if (avg == null) "Moyenne: — /20"
-                else "Moyenne: ${"%.2f".format(avg)} /20 — ${GradeCalculator.mention(avg)}",
+                if (avg == null) stringResource(R.string.avg_none)
+                else stringResource(R.string.avg_fmt, "%.2f".format(avg), GradeCalculator.mention(avg)),
                 style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary
             )
             grades.forEach { g ->
@@ -214,7 +215,7 @@ fun PupilRow(p: Pupil, dao: EcoleDao) {
             }
             if (showAdd) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedTextField(value = subject, onValueChange = { subject = it }, label = { Text("Matière") }, modifier = Modifier.weight(1f), singleLine = true)
+                    OutlinedTextField(value = subject, onValueChange = { subject = it }, label = { Text(stringResource(R.string.subject)) }, modifier = Modifier.weight(1f), singleLine = true)
                     OutlinedTextField(value = value, onValueChange = { value = it }, label = { Text("/20") }, modifier = Modifier.weight(1f), singleLine = true)
                     Button(onClick = {
                         val v = value.replace(',', '.').toDoubleOrNull()
@@ -239,7 +240,7 @@ fun AttendanceScreen() {
     var marks by remember { mutableStateOf(mapOf<Long, String>()) }
 
     Column(Modifier.fillMaxSize().padding(16.dp)) {
-        Text("Présences — $today", style = MaterialTheme.typography.titleLarge)
+        Text(stringResource(R.string.attendance, today), style = MaterialTheme.typography.titleLarge)
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             classes.forEach { c ->
                 FilterChip(selected = classId == c.id, onClick = { classId = c.id; marks = emptyMap() }, label = { Text(c.name) })
@@ -253,7 +254,7 @@ fun AttendanceScreen() {
                     Column(Modifier.padding(12.dp)) {
                         Text("${p.lastName} ${p.firstName}")
                         Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                            listOf("PRESENT" to "Présent", "ABSENT" to "Absent", "LATE" to "Retard", "EXCUSED" to "Excusé").forEach { (code, label) ->
+                            listOf("PRESENT" to stringResource(R.string.st_present), "ABSENT" to stringResource(R.string.st_absent), "LATE" to stringResource(R.string.st_late), "EXCUSED" to stringResource(R.string.st_excused)).forEach { (code, label) ->
                                 FilterChip(selected = cur == code, onClick = {
                                     marks = marks + (p.id to code)
                                     scope.launch { dao.markAttendance(Attendance(pupilId = p.id, date = today, status = code)) }
@@ -264,7 +265,7 @@ fun AttendanceScreen() {
                 }
             }
         }
-        if (classId == null) Text("Choisissez une classe.")
+        if (classId == null) Text(stringResource(R.string.choose_class))
     }
 }
 
@@ -272,10 +273,10 @@ fun AttendanceScreen() {
 fun AboutScreen() {
     Column(Modifier.fillMaxSize().padding(24.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text("EcoleDZ v1.0.0", style = MaterialTheme.typography.titleLarge)
-        Text("Carnet de notes et présences hors-ligne pour enseignants en Algérie.")
-        Text("• Échelle 0–20, moyenne et mentions (10 = Passable).")
-        Text("• Primaire: moyenne simple; Moyen/Lycée: coefficients.")
-        Text("• Français / العربية (RTL). Aucun compte, aucune connexion.")
-        Text("• Données élèves conservées uniquement sur l'appareil.")
+        Text(stringResource(R.string.about_1))
+        Text(stringResource(R.string.about_2))
+        Text(stringResource(R.string.about_3))
+        Text(stringResource(R.string.about_4))
+        Text(stringResource(R.string.about_5))
     }
 }
