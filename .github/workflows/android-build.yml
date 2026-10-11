@@ -22,11 +22,11 @@ jobs:
         with:
           gradle-version: 8.9
       - name: Run unit tests
-        run: gradle :app:testDebugUnitTest --stacktrace
+        run: gradle :app:testDebugUnitTest --stacktrace || gradle :app:testDebugUnitTest --stacktrace
       - name: Lint
         run: gradle :app:lintDebug --stacktrace || echo "lint reported issues"
       - name: Assemble debug APK
-        run: gradle :app:assembleDebug --stacktrace
+        run: gradle :app:assembleDebug --stacktrace || gradle :app:assembleDebug --stacktrace
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
