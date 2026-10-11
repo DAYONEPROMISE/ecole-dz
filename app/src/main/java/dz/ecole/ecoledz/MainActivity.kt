@@ -22,6 +22,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -128,7 +129,7 @@ fun EcoleDzTheme(content: @Composable () -> Unit) {
 fun ClassListPane(classes: List<SchoolClass>, onOpen: (SchoolClass) -> Unit, onDelete: (SchoolClass) -> Unit) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal, WindowInsetsSides.Bottom).asPaddingValues()
+        contentPadding = WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom).asPaddingValues()
     ) {
         items(classes) { c ->
             ElevatedCard(onClick = { onOpen(c) }, modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp)) {
@@ -228,6 +229,7 @@ fun PupilRow(p: Pupil, dao: EcoleDao) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AttendanceScreen() {
     val ctx = LocalContext.current
