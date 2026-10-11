@@ -12,7 +12,7 @@
     <string name="new_class">Nouvelle classe</string>
     <string name="name_ex">Nom (ex: 5AP-A)</string>
     <string name="cancel">Annuler</string>
-    <string name="empty_classes">Ajoutez votre première classe avec + . Données 100% hors-ligne, sur l\u2019appareil.</string>
+    <string name="empty_classes">Ajoutez votre première classe avec + . Données 100% hors-ligne, sur l'appareil.</string>
     <string name="delete_class">Supprimer la classe %1$s</string>
     <string name="back_classes">← Classes</string>
     <string name="last_name">Nom</string>
@@ -33,5 +33,5 @@
     <string name="about_2">• Échelle 0–20, moyenne et mentions (10 = Passable).</string>
     <string name="about_3">• Primaire: moyenne simple; Moyen/Lycée: coefficients.</string>
     <string name="about_4">• Français / العربية (RTL). Aucun compte, aucune connexion.</string>
-    <string name="about_5">• Données élèves conservées uniquement sur l\u2019appareil.</string>
+    <string name="about_5">• Données élèves conservées uniquement sur l'appareil.</string>
 </resources>
